@@ -433,6 +433,7 @@
   .org-app-row .oa-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0;}
   .org-empty{text-align:center;padding:34px 16px;color:var(--muted);font-size:13.5px;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -711,37 +712,42 @@
 
 <script>
 const DEFAULT_LEGACY_PASSWORD = 'lmn2'; // ใช้เฉพาะรายชื่อเก่าที่ยังไม่เคยตั้งรหัสผ่านของตัวเอง
-const CLAUDE_STORAGE_KEY = 'lmn2-app-hub-v2'; // ใช้เฉพาะตอนทดสอบใน Claude (window.storage)
 
-/* ---------- Storage bridge (2 โหมด) ----------
-   โหมด 1: เปิดผ่านลิงก์ Apps Script Web App → ใช้ google.script.run (คุยกับ Code.gs / Google Sheet)
-   โหมด 2: เปิดใน Claude artifact (ตอนทดสอบ) → ใช้ window.storage แทนโดยอัตโนมัติ
-   ไม่ต้องแก้โค้ดสลับเอง ไฟล์เดียวใช้ได้ทั้งสองที่ */
-function gsCall(fnName, ...args){
-  // โหมด Apps Script
-  if(typeof google !== 'undefined' && google.script && google.script.run){
-    return new Promise((resolve, reject) => {
-      google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(err => reject(err))
-        [fnName](...args);
-    });
+/* ---------- Supabase ---------- */
+const SUPABASE_URL = 'https://loyhomzxlpwebjccxzbu.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_nknZ09_8NJFTdpgQwQzpFQ_QGmbs1y4'; // publishable key เท่านั้น ปลอดภัยอยู่ในนี้ได้
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ---------- Storage bridge (ผ่าน Supabase table app_data, row id=1) ---------- */
+async function gsCall(fnName, ...args){
+  if(fnName === 'getData'){
+    const { data: row, error } = await sb.from('app_data').select('data').eq('id', 1).single();
+    if(error) throw error;
+    return row ? row.data : null;
   }
-  // โหมด Claude artifact (fallback สำหรับทดสอบ)
-  if(typeof window !== 'undefined' && window.storage){
-    if(fnName === 'getData'){
-      return window.storage.get(CLAUDE_STORAGE_KEY, true)
-        .then(res => (res && res.value) ? JSON.parse(res.value) : null)
-        .catch(() => null);
-    }
-    if(fnName === 'setData'){
-      const value = args[0];
-      return window.storage.set(CLAUDE_STORAGE_KEY, JSON.stringify(value), true)
-        .then(() => ({ success:true }));
-    }
+  if(fnName === 'setData'){
+    const value = args[0];
+    const { error } = await sb.from('app_data').update({ data: value, updated_at: new Date() }).eq('id', 1);
+    if(error) throw error;
+    return { success: true };
   }
-  return Promise.reject(new Error('ไม่พบทั้ง google.script.run และ window.storage — เปิดไฟล์นี้ผ่าน Claude artifact หรือลิงก์ Apps Script Web App เท่านั้น'));
+  throw new Error('unknown gsCall fn: ' + fnName);
 }
+
+/* ---------- Realtime: คนอื่นแก้ปุ๊บ ทุกคนเห็นทันทีไม่ต้อง reload ---------- */
+let applyingRemoteUpdate = false;
+function subscribeRealtime(){
+  sb.channel('app_data_changes')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_data', filter: 'id=eq.1' }, (payload) => {
+      applyingRemoteUpdate = true;
+      data = payload.new.data;
+      normalizeData();
+      render();
+      applyingRemoteUpdate = false;
+    })
+    .subscribe();
+}
+
 const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const PALETTE = ['#0d9488','#d97706','#4f46e5','#db2777','#0891b2','#7c3aed','#059669','#475569','#ea580c','#65a30d','#0284c7','#c026d3','#dc2626','#2563eb','#b45309','#57534e'];
 const STATUS_META = {
@@ -1955,6 +1961,7 @@ document.getElementById('searchInput').addEventListener('input', render);
 
 /* ---------- Init ---------- */
 loadData();
+subscribeRealtime();
 </script>
 </body>
 </html>
