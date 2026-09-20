@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Line Maintenance 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10202e;
+    --ink-soft:#5b6b78;
+    --paper:#f2f6f8;
+    --surface:#ffffff;
+    --surface-2:#f6f9fa;
+    --muted:#8b98a3;
+    --border:#e3e9ec;
+    --accent:#0d9488;
+    --accent-soft:#e6f7f5;
+    --ring: rgba(13,148,136,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Sarabun', sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:#99f6e4;color:#0f1e2e;}
+
+  /* Header */
+  .header{
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#ffffff 0%,#f1f9f8 55%,#e7f5f2 100%);
+    border-bottom:1px solid var(--border);
+  }
+  .header::before,.header::after{
+    content:'';position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;
+  }
+  .header::before{width:360px;height:360px;background:rgba(94,234,212,.45);top:-190px;right:-40px;animation:float1 15s ease-in-out infinite;}
+  .header::after{width:280px;height:280px;background:rgba(153,246,228,.55);bottom:-170px;left:8%;animation:float2 17s ease-in-out infinite;}
+  @keyframes float1{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-30px,26px) scale(1.06);}}
+  @keyframes float2{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(26px,-22px) scale(1.05);}}
+
+  .header-inner{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:34px 28px 28px;}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;}
+  .eyebrow{
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin-bottom:10px;
+  }
+  .title{font-size:38px;font-weight:800;letter-spacing:-0.01em;line-height:1.1;margin:0 0 8px;color:var(--ink);}
+  .subtitle{font-size:15.5px;color:var(--ink-soft);max-width:520px;line-height:1.6;margin:0;}
+  .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
+  .count-badge{text-align:right;}
+  .count-num{font-size:34px;font-weight:800;color:var(--accent);line-height:1;}
+  .count-label{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+  .edit-toggle{
+    display:flex;align-items:center;gap:8px;
+    background:#ffffff;
+    border:1px solid var(--border);
+    color:var(--ink);padding:9px 16px;border-radius:10px;
+    font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+    box-shadow:0 1px 2px rgba(16,32,44,.04);
+  }
+  .edit-toggle:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 16px rgba(13,148,136,.12);}
+  .edit-toggle.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .edit-toggle.active:hover{color:#fff;}
+
+  /* Layout */
+  .layout{display:flex;gap:22px;max-width:1400px;margin:0 auto;padding:24px 28px 80px;align-items:flex-start;}
+  .sidebar{
+    width:272px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);
+    border-radius:18px;padding:16px;position:sticky;top:20px;
+    box-shadow:0 1px 3px rgba(16,32,44,.04);
+    opacity:0;animation:fadeUp .5s ease .05s forwards;
+  }
+  .sidebar-head{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 10px;}
+  .sidebar-head h2{font-size:15.5px;font-weight:700;margin:0;}
+  .people-count{font-size:11.5px;color:var(--muted);font-weight:600;}
+  .people-list{display:flex;flex-direction:column;gap:2px;max-height:520px;overflow-y:auto;}
+  .person-card{
+    display:flex;gap:11px;align-items:flex-start;padding:10px 8px;border-radius:12px;
+    transition:background .15s ease;
+  }
+  .person-card:hover{background:var(--surface-2);}
+  .person-avatar{
+    width:38px;height:38px;border-radius:11px;flex-shrink:0;position:relative;
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14.5px;
+  }
+  .person-dot{
+    position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;border-radius:50%;
+    background:#10b981;border:2px solid var(--surface);animation:pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.5);}50%{box-shadow:0 0 0 4px rgba(16,185,129,0);}}
+  .person-info{flex:1;min-width:0;}
+  .person-name{font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .person-role{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .person-task{font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.4;}
+  .person-actions{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+  .empty-people{padding:20px 10px;text-align:center;color:var(--muted);font-size:12.5px;}
+
+  .sidebar-divider{height:1px;background:var(--border);margin:10px 2px 12px;}
+  .activity-list{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto;}
+  .activity-item{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border-radius:11px;transition:background .15s ease;}
+  .activity-item:hover{background:var(--surface-2);}
+  .activity-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:6px;}
+  .activity-info{flex:1;min-width:0;}
+  .activity-text{font-size:12.5px;color:var(--ink);line-height:1.4;}
+  .activity-time{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  .main{flex:1;min-width:0;}
+  .wrap{max-width:100%;}
+
+  /* Search + add-category row */
+  .toolbar{
+    display:flex;gap:12px;align-items:center;justify-content:space-between;
+    margin:0 0 22px;flex-wrap:wrap;
+  }
+  .search{position:relative;flex:1;min-width:220px;max-width:380px;}
+  .search input{
+    width:100%;padding:11px 14px 11px 38px;border-radius:10px;
+    border:1px solid var(--border);background:var(--surface);
+    font-family:inherit;font-size:14.5px;color:var(--ink);
+    outline:none;transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--ring);}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+
+  .ghost-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    background:transparent;border:1.5px dashed #c3ccd1;color:var(--ink-soft);
+    padding:9px 15px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;
+    cursor:pointer;transition:all .15s ease;white-space:nowrap;
+  }
+  .ghost-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  /* Category grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:20px;align-items:start;}
+  .cat-card{
+    background:var(--surface);border-radius:16px;border:1px solid var(--border);
+    overflow:hidden;box-shadow:0 1px 2px rgba(16,32,44,.04);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .cat-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(16,32,44,.09);}
+  .cat-head{padding:14px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .cat-head-left{display:flex;align-items:center;gap:10px;min-width:0;}
+  .cat-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cat-count{background:rgba(255,255,255,0.22);font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:999px;flex-shrink:0;}
+  .cat-head-actions{display:flex;gap:6px;flex-shrink:0;}
+  .icon-btn{
+    background:rgba(255,255,255,0.16);border:none;color:#fff;
+    width:26px;height:26px;border-radius:7px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background .15s ease;flex-shrink:0;
+  }
+  .icon-btn:hover{background:rgba(255,255,255,0.32);}
+  .icon-btn.danger:hover{background:#e11d48;}
+
+  .cat-body{padding:6px 8px;}
+  .app-row{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:11px;transition:background .12s ease;}
+  .app-row:hover{background:var(--surface-2);}
+  .app-icon{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .app-info{flex:1;min-width:0;}
+  .app-name{font-size:14.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .app-desc{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .app-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .open-btn{
+    background:var(--ink);color:#fff;border:none;padding:7px 14px;border-radius:9px;
+    font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;transition:background .15s ease, transform .12s ease;
+  }
+  .open-btn:hover{background:#233648;transform:translateY(-1px);}
+  .preview-btn{
+    background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--border);
+    width:31px;height:31px;border-radius:9px;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;transition:all .15s ease;
+  }
+  .preview-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+  .edit-icon-btn{
+    background:none;border:none;color:#a7b0b6;width:28px;height:28px;border-radius:7px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s ease;
+  }
+  .edit-icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+  .edit-icon-btn.danger:hover{background:#fde8ea;color:#e11d48;}
+
+  .add-app-row{padding:8px 10px 12px;}
+  .add-app-row .ghost-btn{width:100%;justify-content:center;padding:9px;font-size:13.5px;}
+
+  .empty-cat{padding:22px 18px;text-align:center;color:var(--muted);font-size:13.5px;}
+  .empty-state{text-align:center;padding:70px 20px;color:var(--muted);}
+  .empty-state .big{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(16,32,44,0.4);backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+    opacity:0;animation:overlayIn .18s ease forwards;
+  }
+  @keyframes overlayIn{to{opacity:1;}}
+  .modal{
+    background:#fff;border-radius:18px;padding:26px;width:100%;max-width:420px;
+    box-shadow:0 24px 60px rgba(16,32,44,0.22);
+    transform:scale(.96) translateY(6px);opacity:0;animation:modalIn .22s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  @keyframes modalIn{to{transform:scale(1) translateY(0);opacity:1;}}
+  .modal h3{margin:0 0 4px;font-size:19px;font-weight:700;}
+  .modal p.hint{margin:0 0 18px;font-size:13.5px;color:var(--muted);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:#3d4a53;margin-bottom:6px;}
+  .field input, .field textarea, .field select{
+    width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);
+    font-family:inherit;font-size:14.5px;outline:none;transition:border-color .15s ease;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--ring);}
+  .field textarea{resize:vertical;min-height:56px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .color-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .swatch{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:transform .1s ease;}
+  .swatch:hover{transform:scale(1.08);}
+  .swatch.selected{border-color:var(--ink);}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+  .btn-primary{
+    background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:10px;
+    font-family:inherit;font-size:14.5px;font-weight:600;cursor:pointer;transition:background .15s ease, transform .12s ease;
+  }
+  .btn-primary:hover{background:#0b7d72;transform:translateY(-1px);}
+  .btn-secondary{
+    background:none;color:var(--muted);border:none;padding:10px 14px;border-radius:9px;
+    font-family:inherit;font-size:14.5px;font-weight:600;cursor:pointer;
+  }
+  .btn-secondary:hover{color:var(--ink);}
+  .err-msg{color:#e11d48;font-size:13px;margin-top:8px;display:none;}
+
+  .loading-msg{text-align:center;padding:80px 20px;color:var(--muted);font-size:14.5px;}
+
+  /* Dashboard stats */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .stats-row{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin:0 0 22px;}
+  .stat-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:18px 20px;cursor:pointer;position:relative;overflow:hidden;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .stat-card.enter-anim{opacity:0;animation:fadeUp .5s ease forwards;}
+  .stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(16,32,44,0.08);}
+  .stat-card.active{border-color:var(--stat-color, #0d9488);box-shadow:0 0 0 3px var(--stat-ring, rgba(13,148,136,0.14));}
+  .stat-card::after{
+    content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
+    background:var(--stat-color, #0d9488);transform:scaleX(0);transform-origin:left;transition:transform .4s ease;
+  }
+  .stat-card.active::after{transform:scaleX(1);}
+  .stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .stat-icon{
+    width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    background:var(--stat-grad, linear-gradient(135deg, rgba(13,148,136,.16), rgba(13,148,136,.06)));
+    color:var(--stat-color, #0d9488);flex-shrink:0;transition:transform .18s ease;
+  }
+  .stat-card:hover .stat-icon{transform:scale(1.08) rotate(-4deg);}
+  .stat-num{font-size:30px;font-weight:800;color:var(--ink);line-height:1;}
+  .stat-label{font-size:13px;color:var(--muted);margin-top:6px;font-weight:500;}
+
+  /* Dashboard hero */
+  .dashboard-card{
+    background:linear-gradient(135deg,#ffffff 0%,#f6fbfa 100%);
+    border:1px solid var(--border);border-radius:20px;
+    padding:26px 28px 24px;margin:0 0 22px;position:relative;overflow:hidden;
+    box-shadow:0 1px 3px rgba(16,32,44,.04);
+    opacity:0;animation:fadeUp .5s ease .1s forwards;
+  }
+  .dashboard-card::before{
+    content:'';position:absolute;width:280px;height:280px;border-radius:50%;
+    background:radial-gradient(circle,rgba(94,234,212,.4),transparent 72%);
+    top:-130px;right:-70px;pointer-events:none;animation:float1 16s ease-in-out infinite;
+  }
+  .dashboard-card::after{
+    content:'';position:absolute;width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(13,148,136,.14),transparent 72%);
+    bottom:-120px;left:-60px;pointer-events:none;animation:float2 18s ease-in-out infinite;
+  }
+  .dash-hero{display:flex;align-items:center;gap:30px;flex-wrap:wrap;position:relative;z-index:1;}
+  .ring-wrap{position:relative;width:150px;height:150px;flex-shrink:0;}
+  .ring-svg{width:150px;height:150px;transform:rotate(-90deg);}
+  .ring-bg{fill:none;stroke:#e7edf0;stroke-width:13;}
+  .ring-fg{
+    fill:none;stroke:url(#ringGrad);stroke-width:13;stroke-linecap:round;
+    transition:stroke-dashoffset 1.3s cubic-bezier(.22,.9,.3,1);
+  }
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-pct{font-size:27px;font-weight:800;color:var(--ink);}
+  .ring-label{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px;}
+
+  .dash-hero-info{flex:1;min-width:220px;}
+  .dash-hero-title{font-size:16px;font-weight:700;color:var(--ink);}
+  .dash-hero-sub{font-size:13px;color:var(--ink-soft);margin-top:3px;}
+  .dash-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;}
+  .dash-legend-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);}
+  .dash-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .dash-legend-num{font-weight:700;color:var(--ink);}
+
+  .dash-breakdown{margin-top:24px;position:relative;z-index:1;}
+  .dash-breakdown-head{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+  .breakdown-list{display:flex;flex-direction:column;gap:11px;}
+  .breakdown-row{display:flex;align-items:center;gap:12px;}
+  .breakdown-name{width:130px;flex-shrink:0;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .breakdown-track{flex:1;height:9px;background:#eef1f3;border-radius:999px;overflow:hidden;}
+  .breakdown-fill{height:100%;border-radius:999px;width:0%;transition:width 1.1s cubic-bezier(.22,.9,.3,1);}
+  .breakdown-count{width:38px;text-align:right;font-size:12.5px;font-weight:700;color:var(--muted);flex-shrink:0;}
+  @media (max-width:560px){.dash-hero{flex-direction:column;align-items:flex-start;}}
+
+  .cat-card{opacity:1;}
+  .cat-card.enter-anim{animation:fadeUp .5s ease forwards;opacity:0;}
+  .person-card.enter-anim{animation:fadeUp .45s ease forwards;opacity:0;}
+
+  .status-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;flex-shrink:0;white-space:nowrap;}
+  .status-pill-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .status-pill{
+    padding:8px 14px;border-radius:999px;border:1.5px solid var(--border);
+    font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted);
+    background:#fff;transition:all .15s ease;
+  }
+  .status-pill.selected{color:#fff;border-color:transparent;}
+
+  .last-updated-line{font-size:13px;color:var(--muted);margin:-10px 0 22px;display:none;}
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%;position:static;max-height:none;}
+    .people-list{max-height:260px;}
+  }
+  @media (max-width:760px){.stats-row{grid-template-columns:repeat(2, 1fr);}}
+  @media (max-width:520px){
+    .title{font-size:29px;}
+    .header-top{flex-direction:column;}
+    .header-right{align-items:flex-start;flex-direction:row-reverse;justify-content:space-between;width:100%;}
+  }
+
+  /* --- new: meta row (assignee/due) on app cards --- */
+  .app-meta-row{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap;}
+  .app-meta-chip{
+    display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;
+    color:var(--ink-soft);background:var(--surface-2);padding:2px 8px;border-radius:999px;white-space:nowrap;
+  }
+  .app-meta-chip.overdue{color:#e11d48;background:#fde8ea;}
+  .app-meta-chip svg{flex-shrink:0;}
+
+  /* --- new: trash button + modal --- */
+  .trash-toggle{position:relative;}
+  .trash-badge{
+    position:absolute;top:-6px;right:-6px;background:#e11d48;color:#fff;font-size:10.5px;font-weight:700;
+    min-width:17px;height:17px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 4px;
+    border:2px solid var(--paper);
+  }
+  .trash-modal{max-width:560px;max-height:80vh;display:flex;flex-direction:column;}
+  .trash-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .trash-tab{
+    flex:1;text-align:center;padding:8px 10px;border-radius:9px;border:1px solid var(--border);
+    background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;
+  }
+  .trash-tab.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .trash-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;padding-right:2px;}
+  .trash-row{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);
+    border-radius:11px;background:var(--surface-2);
+  }
+  .trash-row-info{flex:1;min-width:0;}
+  .trash-row-name{font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .trash-row-sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .trash-row-actions{display:flex;gap:6px;flex-shrink:0;}
+  .trash-empty{padding:30px 10px;text-align:center;color:var(--muted);font-size:13px;}
+  .small-btn{
+    border:none;padding:6px 11px;border-radius:8px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  }
+  .small-btn.restore{background:var(--accent-soft);color:var(--accent);}
+  .small-btn.restore:hover{background:var(--accent);color:#fff;}
+  .small-btn.forget{background:#fde8ea;color:#e11d48;}
+  .small-btn.forget:hover{background:#e11d48;color:#fff;}
+
+  /* --- new: app preview modal --- */
+  .preview-modal{
+    max-width:min(1100px, 94vw);width:94vw;height:88vh;padding:0;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .preview-head{
+    display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .preview-icon{width:32px;height:32px;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .preview-title{flex:1;min-width:0;font-size:15.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .preview-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .preview-body{flex:1;min-height:0;position:relative;background:var(--surface-2);}
+  .preview-body iframe{width:100%;height:100%;border:none;display:block;background:#fff;}
+  .preview-fallback{
+    position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:10px;padding:30px;text-align:center;color:var(--muted);font-size:13.5px;background:var(--surface-2);
+  }
+  .preview-fallback.show{display:flex;}
+  @media (max-width:640px){ .preview-modal{height:92vh;} }
+
+  /* --- new: person detail org-chart modal --- */
+  .person-modal{max-width:min(820px, 94vw);width:94vw;max-height:86vh;overflow-y:auto;}
+  .org-top{display:flex;justify-content:center;margin-bottom:0;}
+  .org-node{
+    display:inline-flex;align-items:center;gap:12px;background:var(--ink);color:#fff;
+    padding:14px 22px;border-radius:14px;box-shadow:0 6px 18px rgba(16,32,44,.18);
+  }
+  .org-node .org-avatar{
+    width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:16px;color:#fff;flex-shrink:0;
+  }
+  .org-node-name{font-size:15.5px;font-weight:700;}
+  .org-node-role{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px;}
+  .org-task-line{
+    text-align:center;font-size:12.5px;color:var(--ink-soft);margin:10px auto 0;max-width:420px;
+    background:var(--accent-soft);color:var(--accent);padding:6px 14px;border-radius:999px;display:table;
+  }
+  .org-trunk{width:2px;height:22px;background:var(--border);margin:0 auto;}
+  .org-hline{height:2px;background:var(--border);margin:0 32px;}
+  .org-branch-row{display:flex;justify-content:center;flex-wrap:wrap;gap:0;position:relative;}
+  .org-branch-col{display:flex;flex-direction:column;align-items:center;padding:0 10px;min-width:190px;max-width:240px;flex:1;}
+  .org-branch-stub{width:2px;height:18px;background:var(--border);}
+  .org-branch-card{
+    width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;box-shadow:0 1px 3px rgba(16,32,44,.05);
+  }
+  .org-branch-head{padding:9px 13px;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+  .org-branch-body{padding:8px 10px;display:flex;flex-direction:column;gap:6px;}
+  .org-app-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;background:var(--surface-2);}
+  .org-app-row .oa-icon{font-size:14px;flex-shrink:0;}
+  .org-app-row .oa-name{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .org-app-row .oa-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0;}
+  .org-empty{text-align:center;padding:34px 16px;color:var(--muted);font-size:13.5px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <h1 class="title">Line Maintenance 2</h1>
+      </div>
+      <div class="header-right">
+        <div class="count-badge">
+          <div class="count-num" id="totalCount">0</div>
+          <div class="count-label">แอพทั้งหมด</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+        <button class="edit-toggle trash-toggle" id="trashToggleBtn" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+          <span>ถังขยะ</span>
+          <span class="trash-badge" id="trashBadge" style="display:none;">0</span>
+        </button>
+        <button class="edit-toggle" id="editToggleBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span id="editToggleLabel">แก้ไข</span>
+        </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <h2>ทีมงาน</h2>
+      <span class="people-count" id="peopleCount">0 คน</span>
+    </div>
+    <div class="people-list" id="peopleList"></div>
+    <button class="ghost-btn" id="addPersonBtn" style="display:none;margin-top:8px;width:100%;justify-content:center;">+ เพิ่มคนในทีม</button>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-head">
+      <h2>ประวัติการแก้ไข</h2>
+    </div>
+    <div class="activity-list" id="activityList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+      <div class="dashboard-card" id="dashboardCard">
+        <div class="dash-hero">
+          <div class="ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 150 150">
+              <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0d9488"/>
+                  <stop offset="100%" stop-color="#059669"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-bg" cx="75" cy="75" r="64"></circle>
+              <circle class="ring-fg" id="ringFg" cx="75" cy="75" r="64"></circle>
+            </svg>
+            <div class="ring-center">
+              <div class="ring-pct" id="ringPct">0%</div>
+              <div class="ring-label">เสร็จแล้ว</div>
+            </div>
+          </div>
+          <div class="dash-hero-info">
+            <div class="dash-hero-title">ความคืบหน้ารวม</div>
+            <div class="dash-hero-sub" id="dashHeroSub">0 จาก 0 แอพเสร็จสมบูรณ์</div>
+            <div class="dash-legend" id="dashLegend"></div>
+          </div>
+        </div>
+        <div class="dash-breakdown">
+          <div class="dash-breakdown-head">แยกตามหมวดหมู่</div>
+          <div class="breakdown-list" id="breakdownList"></div>
+        </div>
+      </div>
+      <div class="stats-row" id="statsRow"></div>
+
+      <div class="toolbar">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchInput" placeholder="ค้นหาแอพ...">
+        </div>
+        <button class="ghost-btn" id="addCatBtn" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          เพิ่มหมวดหมู่
+        </button>
+      </div>
+      <div id="lastUpdatedLine" class="last-updated-line"></div>
+
+      <div id="loadingMsg" class="loading-msg">กำลังโหลดข้อมูล...</div>
+      <div class="grid" id="grid" style="display:none;"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="big">ยังไม่มีแอพในระบบ</div>
+        <div>กดปุ่ม "แก้ไข" ที่มุมบนขวา แล้วใส่รหัสเพื่อเริ่มเพิ่มหมวดหมู่และแอพ</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Password modal -->
+<div class="overlay" id="pwOverlay" style="display:none;">
+  <div class="modal">
+    <h3>ปลดล็อกโหมดแก้ไข</h3>
+    <p class="hint">เลือกชื่อและใส่รหัสผ่านของคุณเพื่อเพิ่ม แก้ไข หรือลบข้อมูล</p>
+    <div class="field">
+      <label>ชื่อของคุณ</label>
+      <select id="editorNameSelect"></select>
+    </div>
+    <div class="field" id="newEditorNameField" style="display:none;">
+      <label>ชื่อใหม่</label>
+      <input type="text" id="newEditorNameInput" placeholder="พิมพ์ชื่อของคุณ">
+    </div>
+    <div class="field" id="newEditorPasswordField" style="display:none;">
+      <label>ตั้งรหัสผ่านของคุณ</label>
+      <input type="password" id="newEditorPasswordInput" placeholder="ตั้งรหัสผ่านสำหรับชื่อนี้">
+    </div>
+    <div class="field" id="pwField">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="pwInput" placeholder="••••••">
+    </div>
+    <div class="err-msg" id="pwErr">รหัสผ่านไม่ถูกต้อง ลองใหม่อีกครั้ง</div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="pwCancel">ยกเลิก</button>
+      <button class="btn-primary" id="pwSubmit">ปลดล็อก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category modal -->
+<div class="overlay" id="catOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="catModalTitle">เพิ่มหมวดหมู่</h3>
+    <p class="hint">ตั้งชื่อและเลือกสีประจำหมวดหมู่</p>
+    <div class="field">
+      <label>ชื่อหมวดหมู่</label>
+      <input type="text" id="catNameInput" placeholder="เช่น บำรุงรักษา, คุณภาพ">
+    </div>
+    <div class="field">
+      <label>สี</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="catCancel">ยกเลิก</button>
+      <button class="btn-primary" id="catSubmit">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- App modal -->
+<div class="overlay" id="appOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="appModalTitle">เพิ่มแอพ</h3>
+    <p class="hint">กรอกรายละเอียดของแอพที่ต้องการเพิ่มในหมวดหมู่นี้</p>
+    <div class="field">
+      <label>ไอคอน (emoji)</label>
+      <input type="text" id="appIconInput" placeholder="เช่น 🛠️" maxlength="4">
+    </div>
+    <div class="field">
+      <label>ชื่อแอพ</label>
+      <input type="text" id="appNameInput" placeholder="ชื่อแอพ">
+    </div>
+    <div class="field">
+      <label>คำอธิบายสั้นๆ</label>
+      <textarea id="appDescInput" placeholder="แอพนี้ใช้ทำอะไร"></textarea>
+    </div>
+    <div class="field">
+      <label>ลิงก์ (URL)</label>
+      <input type="text" id="appUrlInput" placeholder="https://...">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>ผู้รับผิดชอบ</label>
+        <select id="appAssigneeInput"></select>
+      </div>
+      <div class="field">
+        <label>กำหนดเสร็จ</label>
+        <input type="date" id="appDueDateInput">
+      </div>
+    </div>
+    <div class="field">
+      <label>สถานะ</label>
+      <div class="status-pill-row" id="statusPillRow"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="appCancel">ยกเลิก</button>
+      <button class="btn-primary" id="appSubmit">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Person modal -->
+<div class="overlay" id="personOverlay" style="display:none;">
+  <div class="modal">
+    <h3 id="personModalTitle">เพิ่มคนในทีม</h3>
+    <p class="hint">กรอกข้อมูลของคนในแผนก</p>
+    <div class="field">
+      <label>ชื่อ</label>
+      <input type="text" id="personNameInput" placeholder="ชื่อ-นามสกุล">
+    </div>
+    <div class="field">
+      <label>ตำแหน่ง</label>
+      <input type="text" id="personRoleInput" placeholder="เช่น เจ้าหน้าที่บำรุงรักษา">
+    </div>
+    <div class="field">
+      <label>กำลังทำอะไร</label>
+      <textarea id="personTaskInput" placeholder="งานที่กำลังทำอยู่ตอนนี้"></textarea>
+    </div>
+    <div class="field">
+      <label>รหัสผ่าน (สำหรับปลดล็อกโหมดแก้ไขของคนนี้)</label>
+      <input type="password" id="personPasswordInput" placeholder="เว้นว่าง = ไม่เปลี่ยนรหัสเดิม">
+    </div>
+    <div class="field">
+      <label>สี</label>
+      <div class="color-row" id="personColorRow"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="personCancel">ยกเลิก</button>
+      <button class="btn-primary" id="personSubmit">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trash modal -->
+<div class="overlay" id="trashOverlay" style="display:none;">
+  <div class="modal trash-modal">
+    <h3>ถังขยะ</h3>
+    <p class="hint">รายการที่ถูกลบจะเก็บไว้ที่นี่ 30 วัน กู้คืนได้ทุกเมื่อ</p>
+    <div class="trash-tabs">
+      <button class="trash-tab active" data-trash-kind="apps">แอพ</button>
+      <button class="trash-tab" data-trash-kind="categories">หมวดหมู่</button>
+      <button class="trash-tab" data-trash-kind="people">คนในทีม</button>
+    </div>
+    <div class="trash-list" id="trashList"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="trashCloseBtn">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- App preview modal -->
+<div class="overlay" id="previewOverlay" style="display:none;">
+  <div class="modal preview-modal">
+    <div class="preview-head">
+      <div class="preview-icon" id="previewIcon">🔗</div>
+      <div class="preview-title" id="previewTitle">ตัวอย่างหน้าแอพ</div>
+      <div class="preview-actions">
+        <a class="btn-secondary" id="previewOpenNewTab" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">เปิดแท็บใหม่</a>
+        <button class="btn-secondary" id="previewCloseBtn">ปิด</button>
+      </div>
+    </div>
+    <div class="preview-body">
+      <iframe id="previewIframe" src="about:blank" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+      <div class="preview-fallback" id="previewFallback">
+        <div style="font-size:28px;">🚫</div>
+        <div><strong>แอพนี้ไม่ยอมให้แสดงตัวอย่างในนี้</strong></div>
+        <div>บางเว็บตั้งค่าความปลอดภัย (X-Frame-Options) ไว้ไม่ให้แสดงในหน้าอื่น — กด "เปิดแท็บใหม่" ด้านบนแทน</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Person detail (org-chart style) modal -->
+<div class="overlay" id="personDetailOverlay" style="display:none;">
+  <div class="modal person-modal">
+    <h3 style="text-align:center;margin-bottom:4px;">ภาพรวมงานที่รับผิดชอบ</h3>
+    <p class="hint" style="text-align:center;">แตกตามหมวดหมู่แอพที่มอบหมายให้</p>
+    <div id="personDetailChart"></div>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn-secondary" id="personDetailCloseBtn">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_LEGACY_PASSWORD = 'lmn2'; // ใช้เฉพาะรายชื่อเก่าที่ยังไม่เคยตั้งรหัสผ่านของตัวเอง
+const CLAUDE_STORAGE_KEY = 'lmn2-app-hub-v2'; // ใช้เฉพาะตอนทดสอบใน Claude (window.storage)
+
+/* ---------- Storage bridge (2 โหมด) ----------
+   โหมด 1: เปิดผ่านลิงก์ Apps Script Web App → ใช้ google.script.run (คุยกับ Code.gs / Google Sheet)
+   โหมด 2: เปิดใน Claude artifact (ตอนทดสอบ) → ใช้ window.storage แทนโดยอัตโนมัติ
+   ไม่ต้องแก้โค้ดสลับเอง ไฟล์เดียวใช้ได้ทั้งสองที่ */
+function gsCall(fnName, ...args){
+  // โหมด Apps Script
+  if(typeof google !== 'undefined' && google.script && google.script.run){
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(err => reject(err))
+        [fnName](...args);
+    });
+  }
+  // โหมด Claude artifact (fallback สำหรับทดสอบ)
+  if(typeof window !== 'undefined' && window.storage){
+    if(fnName === 'getData'){
+      return window.storage.get(CLAUDE_STORAGE_KEY, true)
+        .then(res => (res && res.value) ? JSON.parse(res.value) : null)
+        .catch(() => null);
+    }
+    if(fnName === 'setData'){
+      const value = args[0];
+      return window.storage.set(CLAUDE_STORAGE_KEY, JSON.stringify(value), true)
+        .then(() => ({ success:true }));
+    }
+  }
+  return Promise.reject(new Error('ไม่พบทั้ง google.script.run และ window.storage — เปิดไฟล์นี้ผ่าน Claude artifact หรือลิงก์ Apps Script Web App เท่านั้น'));
+}
+const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const PALETTE = ['#0d9488','#d97706','#4f46e5','#db2777','#0891b2','#7c3aed','#059669','#475569','#ea580c','#65a30d','#0284c7','#c026d3','#dc2626','#2563eb','#b45309','#57534e'];
+const STATUS_META = {
+  planned:     { label:'วางแผน',     color:'#64748b' },
+  in_progress: { label:'กำลังพัฒนา', color:'#d97706' },
+  done:        { label:'เสร็จแล้ว',   color:'#059669' }
+};
+const STATUS_ORDER = ['done','in_progress','planned'];
+
+let data = { categories: [], activity: [], people: [], trash: { apps: [], categories: [], people: [] } };
+let editMode = false;
+let currentEditor = '';
+let statusFilter = null;
+let pendingStatus = 'in_progress';
+let isFirstRender = true;
+let editingCatId = null;
+let addingToCategoryId = null;
+let editingAppId = null;
+let pendingColor = PALETTE[0];
+let editingPersonId = null;
+let pendingPersonColor = PALETTE[0];
+let currentTrashTab = 'apps';
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+function logActivity(action){
+  if(!Array.isArray(data.activity)) data.activity = [];
+  data.activity.unshift({ id: uid(), name: currentEditor || 'ไม่ระบุชื่อ', action, time: Date.now() });
+  if(data.activity.length > 30) data.activity = data.activity.slice(0, 30);
+}
+
+function relativeTime(ts){
+  const diff = Math.max(0, Date.now() - ts);
+  const min = Math.floor(diff / 60000);
+  if(min < 1) return 'เมื่อสักครู่';
+  if(min < 60) return `${min} นาทีที่แล้ว`;
+  const hr = Math.floor(min / 60);
+  if(hr < 24) return `${hr} ชั่วโมงที่แล้ว`;
+  const day = Math.floor(hr / 24);
+  if(day < 7) return `${day} วันที่แล้ว`;
+  return new Date(ts).toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function defaultData(){
+  return {
+    activity: [],
+    trash: { apps: [], categories: [], people: [] },
+    people: [
+      { id: uid(), name:'สมชาย ใจดี', role:'หัวหน้าทีมบำรุงรักษา', task:'ตรวจสอบระบบ PM ไลน์ 2', color:'#0d9488', password: DEFAULT_LEGACY_PASSWORD },
+      { id: uid(), name:'สมหญิง รักงาน', role:'เจ้าหน้าที่คุณภาพ', task:'ตรวจสอบ NCR ประจำวัน', color:'#d97706', password: DEFAULT_LEGACY_PASSWORD },
+      { id: uid(), name:'วิชัย มั่นคง', role:'เจ้าหน้าที่คลังอะไหล่', task:'เบิกอะไหล่ Conveyor', color:'#4f46e5', password: DEFAULT_LEGACY_PASSWORD }
+    ],
+    categories: [
+      {
+        id: uid(), name: 'บำรุงรักษา', color: '#0d9488',
+        apps: [
+          { id: uid(), icon:'🛠️', name:'ระบบแจ้งซ่อมบำรุง', desc:'แจ้งและติดตามงานซ่อมเครื่องจักรในไลน์', url:'', status:'done', assignee:'', dueDate:'' },
+          { id: uid(), icon:'🗓️', name:'ระบบวางแผน PM', desc:'ตารางบำรุงรักษาเชิงป้องกันของแต่ละไลน์', url:'', status:'in_progress', assignee:'', dueDate:'' }
+        ]
+      },
+      {
+        id: uid(), name: 'คุณภาพ', color: '#d97706',
+        apps: [
+          { id: uid(), icon:'✅', name:'ระบบตรวจสอบคุณภาพ', desc:'บันทึกผลตรวจสอบและ NCR ประจำวัน', url:'', status:'in_progress', assignee:'', dueDate:'' }
+        ]
+      },
+      {
+        id: uid(), name: 'คลังอะไหล่', color: '#4f46e5',
+        apps: [
+          { id: uid(), icon:'📦', name:'ระบบสต็อกอะไหล่', desc:'ตรวจสอบและเบิกอะไหล่คงคลัง', url:'', status:'planned', assignee:'', dueDate:'' }
+        ]
+      }
+    ]
+  };
+}
+
+function normalizeData(){
+  if(!Array.isArray(data.activity)) data.activity = [];
+  if(!Array.isArray(data.categories)) data.categories = [];
+  if(!Array.isArray(data.people)) data.people = [];
+  if(!data.trash || typeof data.trash !== 'object') data.trash = { apps: [], categories: [], people: [] };
+  if(!Array.isArray(data.trash.apps)) data.trash.apps = [];
+  if(!Array.isArray(data.trash.categories)) data.trash.categories = [];
+  if(!Array.isArray(data.trash.people)) data.trash.people = [];
+  data.people.forEach(p => {
+    if(typeof p.password !== 'string' || !p.password) p.password = DEFAULT_LEGACY_PASSWORD;
+  });
+  data.categories.forEach(c => {
+    (c.apps || []).forEach(a => {
+      if(!a.status || !STATUS_META[a.status]) a.status = 'in_progress';
+      if(typeof a.assignee !== 'string') a.assignee = '';
+      if(typeof a.dueDate !== 'string') a.dueDate = '';
+    });
+  });
+  purgeOldTrash();
+}
+
+function purgeOldTrash(){
+  const cutoff = Date.now() - TRASH_RETENTION_MS;
+  ['apps','categories','people'].forEach(kind => {
+    data.trash[kind] = data.trash[kind].filter(item => (item.deletedAt || 0) >= cutoff);
+  });
+}
+
+async function loadData(){
+  try{
+    const res = await gsCall('getData');
+    if(res){
+      data = res;
+      normalizeData();
+    } else {
+      data = defaultData();
+      await saveData();
+    }
+  }catch(e){
+    console.error('Load error:', e);
+    document.getElementById('loadingMsg').textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + (e && e.message ? e.message : e);
+    return;
+  }
+  render();
+}
+
+/* ---------- Save with item-level merge (reduces overwrite risk when 2 people edit at once) ---------- */
+function mergeById(remoteArr, localArr, removedIds){
+  const removed = new Set(removedIds || []);
+  const byId = new Map();
+  (remoteArr || []).forEach(item => { if(!removed.has(item.id)) byId.set(item.id, item); });
+  (localArr || []).forEach(item => { if(!removed.has(item.id)) byId.set(item.id, item); });
+  return Array.from(byId.values());
+}
+
+async function saveData(opts){
+  opts = opts || {};
+  try{
+    const remote = await gsCall('getData');
+    {
+      if(remote){
+        if(!Array.isArray(remote.activity)) remote.activity = [];
+        if(!Array.isArray(remote.categories)) remote.categories = [];
+        if(!Array.isArray(remote.people)) remote.people = [];
+        if(!remote.trash) remote.trash = { apps: [], categories: [], people: [] };
+
+        // people & categories merged item-by-item so a concurrent edit elsewhere isn't wiped out
+        data.people = mergeById(remote.people, data.people, opts.removedPersonIds);
+        data.categories = mergeById(remote.categories, data.categories, opts.removedCategoryIds).map(cat => {
+          const localCat = data.categories.find(c => c.id === cat.id);
+          const remoteCat = remote.categories.find(c => c.id === cat.id);
+          if(localCat && cat.id === opts.touchedCategoryId){
+            // this category's app list was just edited locally: merge its apps at item level too
+            const remoteApps = remoteCat ? remoteCat.apps : [];
+            localCat.apps = mergeById(remoteApps, localCat.apps, opts.removedAppIds);
+          }
+          return localCat || cat;
+        });
+
+        // trash lists merged the same way
+        data.trash = {
+          apps: mergeById(remote.trash.apps, data.trash.apps, opts.forgottenAppIds),
+          categories: mergeById(remote.trash.categories, data.trash.categories, opts.forgottenCategoryIds),
+          people: mergeById(remote.trash.people, data.trash.people, opts.forgottenPersonIds)
+        };
+
+        // activity: union, newest first, capped
+        const actMap = new Map();
+        remote.activity.forEach(a => actMap.set(a.id, a));
+        data.activity.forEach(a => actMap.set(a.id, a));
+        data.activity = Array.from(actMap.values()).sort((a,b) => b.time - a.time).slice(0, 30);
+      }
+    }
+  }catch(e){
+    console.error('Pre-save merge fetch failed, saving local copy as-is:', e);
+  }
+  try{
+    await gsCall('setData', data);
+  }catch(e){
+    console.error('Storage save error:', e);
+    alert('บันทึกไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+  }
+}
+
+function computeStats(){
+  let total = 0;
+  const counts = { done:0, in_progress:0, planned:0 };
+  data.categories.forEach(c => c.apps.forEach(a => {
+    total++;
+    const s = STATUS_META[a.status] ? a.status : 'in_progress';
+    counts[s] = (counts[s] || 0) + 1;
+  }));
+  return { total, counts };
+}
+
+function animateCount(el, from, to, duration){
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const ICONS = {
+  all: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  done: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  in_progress: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  planned: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h13l-2 5 2 5H6"/></svg>'
+};
+
+const RING_R = 64;
+const RING_C = 2 * Math.PI * RING_R;
+let renderedStatNums = { all:0, done:0, in_progress:0, planned:0 };
+let renderedRingPct = 0;
+
+function renderStats(stats){
+  const row = document.getElementById('statsRow');
+  const cards = [
+    { key:'all', label:'แอพทั้งหมด', num: stats.total, color:'#0f766e' },
+    { key:'done', label: STATUS_META.done.label, num: stats.counts.done || 0, color: STATUS_META.done.color },
+    { key:'in_progress', label: STATUS_META.in_progress.label, num: stats.counts.in_progress || 0, color: STATUS_META.in_progress.color },
+    { key:'planned', label: STATUS_META.planned.label, num: stats.counts.planned || 0, color: STATUS_META.planned.color }
+  ];
+
+  row.innerHTML = cards.map((c, i) => `
+    <div class="stat-card ${isFirstRender ? 'enter-anim' : ''} ${statusFilter === c.key ? 'active' : ''}"
+         data-status-key="${c.key}"
+         style="animation-delay:${i * 0.07}s; --stat-color:${c.color}; --stat-tint:${hexToRgba(c.color,0.12)}; --stat-ring:${hexToRgba(c.color,0.16)}; --stat-grad:linear-gradient(135deg, ${hexToRgba(c.color,0.22)}, ${hexToRgba(c.color,0.06)});">
+      <div class="stat-top">
+        <div class="stat-icon">${ICONS[c.key]}</div>
+      </div>
+      <div class="stat-num" data-num-key="${c.key}">${renderedStatNums[c.key]}</div>
+      <div class="stat-label">${c.label}</div>
+    </div>
+  `).join('');
+
+  cards.forEach(c => {
+    const numEl = row.querySelector(`[data-num-key="${c.key}"]`);
+    animateCount(numEl, renderedStatNums[c.key], c.num, 700);
+    renderedStatNums[c.key] = c.num;
+  });
+
+  row.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const key = card.dataset.statusKey;
+      statusFilter = (key === 'all') ? null : (statusFilter === key ? null : key);
+      render();
+    });
+  });
+
+  renderDashboardHero(stats);
+  renderBreakdown(stats);
+}
+
+function renderDashboardHero(stats){
+  const pct = stats.total > 0 ? Math.round((stats.counts.done || 0) / stats.total * 100) : 0;
+  const ringFg = document.getElementById('ringFg');
+  ringFg.style.strokeDasharray = RING_C;
+  if(isFirstRender) ringFg.style.strokeDashoffset = RING_C;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ringFg.style.strokeDashoffset = RING_C - (pct / 100) * RING_C;
+  }));
+
+  const pctEl = document.getElementById('ringPct');
+  const start = renderedRingPct;
+  const startTime = performance.now();
+  function tick(now){
+    const p = Math.min(1, (now - startTime) / 900);
+    const eased = 1 - Math.pow(1 - p, 3);
+    pctEl.textContent = Math.round(start + (pct - start) * eased) + '%';
+    if(p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  renderedRingPct = pct;
+
+  document.getElementById('dashHeroSub').textContent = `${stats.counts.done || 0} จาก ${stats.total} แอพเสร็จสมบูรณ์`;
+
+  const legend = document.getElementById('dashLegend');
+  legend.innerHTML = STATUS_ORDER.map(key => `
+    <div class="dash-legend-item">
+      <span class="dash-legend-dot" style="background:${STATUS_META[key].color};"></span>
+      <span class="dash-legend-num">${stats.counts[key] || 0}</span> ${STATUS_META[key].label}
+    </div>
+  `).join('');
+}
+
+function renderBreakdown(stats){
+  const list = document.getElementById('breakdownList');
+  if(data.categories.length === 0){
+    list.innerHTML = `<div class="empty-people">ยังไม่มีหมวดหมู่</div>`;
+    return;
+  }
+  list.innerHTML = data.categories.map(cat => `
+    <div class="breakdown-row">
+      <div class="breakdown-name">${escapeHtml(cat.name)}</div>
+      <div class="breakdown-track"><div class="breakdown-fill" data-cat-id="${cat.id}" style="background:${cat.color};"></div></div>
+      <div class="breakdown-count">${cat.apps.length}</div>
+    </div>
+  `).join('');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    list.querySelectorAll('.breakdown-fill').forEach(el => {
+      const cat = data.categories.find(c => c.id === el.dataset.catId);
+      const w = stats.total > 0 ? (cat.apps.length / stats.total * 100) : 0;
+      el.style.width = w + '%';
+    });
+  }));
+}
+
+function initials(name){
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if(parts.length === 0) return '?';
+  return parts[0].charAt(0).toUpperCase();
+}
+
+function renderPeople(){
+  const list = document.getElementById('peopleList');
+  document.getElementById('peopleCount').textContent = data.people.length + ' คน';
+  document.getElementById('addPersonBtn').style.display = editMode ? 'inline-flex' : 'none';
+
+  if(data.people.length === 0){
+    list.innerHTML = `<div class="empty-people">ยังไม่มีรายชื่อ</div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  data.people.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'person-card' + (isFirstRender ? ' enter-anim' : '');
+    row.style.cursor = 'pointer';
+    if(isFirstRender) row.style.animationDelay = (i * 0.05) + 's';
+    row.innerHTML = `
+      <div class="person-avatar" style="background:${p.color || '#0d9488'};">
+        ${escapeHtml(initials(p.name))}
+        <span class="person-dot"></span>
+      </div>
+      <div class="person-info">
+        <div class="person-name">${escapeHtml(p.name)}</div>
+        ${p.role ? `<div class="person-role">${escapeHtml(p.role)}</div>` : ''}
+        ${p.task ? `<div class="person-task">${escapeHtml(p.task)}</div>` : ''}
+      </div>
+    `;
+    if(editMode){
+      const actions = document.createElement('div');
+      actions.className = 'person-actions';
+      actions.innerHTML = `
+        <button class="edit-icon-btn" data-action="edit-person" data-id="${p.id}" title="แก้ไข">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="edit-icon-btn danger" data-action="delete-person" data-id="${p.id}" title="ลบ">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        </button>
+      `;
+      row.appendChild(actions);
+    }
+    row.addEventListener('click', (e) => {
+      if(e.target.closest('.person-actions')) return;
+      openPersonDetail(p.id);
+    });
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); onPeopleAction(e); }));
+}
+
+function onPeopleAction(e){
+  const btn = e.currentTarget;
+  const action = btn.dataset.action;
+  if(action === 'edit-person') openPersonModal(btn.dataset.id);
+  if(action === 'delete-person') deletePerson(btn.dataset.id);
+}
+
+function personName(id){
+  const p = data.people.find(x => x.id === id);
+  return p ? p.name : '';
+}
+
+function isOverdue(app){
+  if(!app.dueDate || app.status === 'done') return false;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(app.dueDate + 'T00:00:00');
+  return due < today;
+}
+
+function formatDueDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('th-TH', { day:'numeric', month:'short', year: (new Date().getFullYear() !== d.getFullYear()) ? 'numeric' : undefined });
+}
+
+function render(){
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('trashToggleBtn').style.display = editMode ? 'inline-flex' : 'none';
+  updateTrashBadge();
+  renderLastUpdatedLine();
+  renderPeople();
+  renderActivityList();
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyState');
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+
+  const stats = computeStats();
+  renderStats(stats);
+  document.getElementById('totalCount').textContent = stats.total;
+
+  const hasAnyCategory = data.categories.length > 0;
+  grid.innerHTML = '';
+
+  let cardIndex = 0;
+
+  data.categories.forEach(cat => {
+    let filteredApps = cat.apps;
+    if(statusFilter) filteredApps = filteredApps.filter(a => (a.status || 'in_progress') === statusFilter);
+    if(q) filteredApps = filteredApps.filter(a => (a.name+' '+a.desc+' '+personName(a.assignee)).toLowerCase().includes(q));
+
+    const hasActiveFilter = !!(q || statusFilter);
+    if(hasActiveFilter && filteredApps.length === 0) return;
+
+    const card = document.createElement('div');
+    card.className = 'cat-card' + (isFirstRender ? ' enter-anim' : '');
+    if(isFirstRender) card.style.animationDelay = (cardIndex * 0.06) + 's';
+    cardIndex++;
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.style.background = cat.color;
+    head.innerHTML = `
+      <div class="cat-head-left">
+        <span class="cat-name">${escapeHtml(cat.name)}</span>
+        <span class="cat-count">${cat.apps.length} แอพ</span>
+      </div>
+    `;
+    if(editMode){
+      const actions = document.createElement('div');
+      actions.className = 'cat-head-actions';
+      actions.innerHTML = `
+        <button class="icon-btn" data-action="edit-cat" data-id="${cat.id}" title="แก้ไขหมวดหมู่">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn danger" data-action="delete-cat" data-id="${cat.id}" title="ลบหมวดหมู่">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        </button>
+      `;
+      head.appendChild(actions);
+    }
+    card.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'cat-body';
+
+    if(filteredApps.length === 0){
+      body.innerHTML = `<div class="empty-cat">ไม่มีแอพในหมวดนี้ตรงกับตัวกรอง</div>`;
+    } else {
+      filteredApps.forEach(app => {
+        const row = document.createElement('div');
+        row.className = 'app-row';
+        const tint = hexToRgba(cat.color, 0.12);
+        const sMeta = STATUS_META[app.status] || STATUS_META.in_progress;
+        const overdue = isOverdue(app);
+        const aName = personName(app.assignee);
+        let metaHtml = '';
+        if(aName || app.dueDate){
+          metaHtml = '<div class="app-meta-row">';
+          if(aName){
+            metaHtml += `<span class="app-meta-chip">👤 ${escapeHtml(aName)}</span>`;
+          }
+          if(app.dueDate){
+            metaHtml += `<span class="app-meta-chip ${overdue ? 'overdue' : ''}">${overdue ? '⚠️' : '📅'} ${escapeHtml(formatDueDate(app.dueDate))}</span>`;
+          }
+          metaHtml += '</div>';
+        }
+        row.innerHTML = `
+          <div class="app-icon" style="background:${tint};">${app.icon || '🔗'}</div>
+          <div class="app-info">
+            <div class="app-name">${escapeHtml(app.name)}</div>
+            <div class="app-desc">${escapeHtml(app.desc || '')}</div>
+            ${metaHtml}
+          </div>
+          <div class="app-actions">
+            <span class="status-badge" style="background:${hexToRgba(sMeta.color,0.14)};color:${sMeta.color};">${sMeta.label}</span>
+          </div>
+        `;
+        const actionsEl = row.querySelector('.app-actions');
+        if(app.url){
+          const previewBtn = document.createElement('button');
+          previewBtn.className = 'preview-btn';
+          previewBtn.title = 'ดูตัวอย่างหน้าแอพ';
+          previewBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+          previewBtn.addEventListener('click', () => openAppPreview(app.url, app.name, app.icon));
+          actionsEl.appendChild(previewBtn);
+
+          const a = document.createElement('a');
+          a.className = 'open-btn';
+          a.href = app.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+          a.textContent = 'เปิด';
+          actionsEl.appendChild(a);
+        }
+        if(editMode){
+          const editBtn = document.createElement('button');
+          editBtn.className = 'edit-icon-btn';
+          editBtn.title = 'แก้ไขแอพ';
+          editBtn.dataset.action = 'edit-app';
+          editBtn.dataset.catId = cat.id;
+          editBtn.dataset.appId = app.id;
+          editBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+          const delBtn = document.createElement('button');
+          delBtn.className = 'edit-icon-btn danger';
+          delBtn.title = 'ลบแอพ';
+          delBtn.dataset.action = 'delete-app';
+          delBtn.dataset.catId = cat.id;
+          delBtn.dataset.appId = app.id;
+          delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>`;
+          actionsEl.appendChild(editBtn);
+          actionsEl.appendChild(delBtn);
+        }
+        body.appendChild(row);
+      });
+    }
+
+    if(editMode){
+      const addRow = document.createElement('div');
+      addRow.className = 'add-app-row';
+      addRow.innerHTML = `<button class="ghost-btn" data-action="add-app" data-cat-id="${cat.id}">+ เพิ่มแอพในหมวดนี้</button>`;
+      body.appendChild(addRow);
+    }
+
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+
+  grid.style.display = hasAnyCategory ? 'grid' : 'none';
+  empty.style.display = hasAnyCategory ? 'none' : 'block';
+
+  document.getElementById('addCatBtn').style.display = editMode ? 'inline-flex' : 'none';
+
+  grid.querySelectorAll('[data-action]').forEach(el => {
+    el.addEventListener('click', onGridAction);
+  });
+
+  isFirstRender = false;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function onGridAction(e){
+  const btn = e.currentTarget;
+  const action = btn.dataset.action;
+  if(action === 'edit-cat') openCatModal(btn.dataset.id);
+  if(action === 'delete-cat') deleteCategory(btn.dataset.id);
+  if(action === 'add-app') openAppModal(btn.dataset.catId, null);
+  if(action === 'edit-app') openAppModal(btn.dataset.catId, btn.dataset.appId);
+  if(action === 'delete-app') deleteApp(btn.dataset.catId, btn.dataset.appId);
+}
+
+/* ---------- Edit mode toggle ---------- */
+const editToggleBtn = document.getElementById('editToggleBtn');
+const editToggleLabel = document.getElementById('editToggleLabel');
+const pwOverlay = document.getElementById('pwOverlay');
+const pwField = document.getElementById('pwField');
+const pwInput = document.getElementById('pwInput');
+const pwErr = document.getElementById('pwErr');
+const editorNameSelect = document.getElementById('editorNameSelect');
+const newEditorNameField = document.getElementById('newEditorNameField');
+const newEditorNameInput = document.getElementById('newEditorNameInput');
+const newEditorPasswordField = document.getElementById('newEditorPasswordField');
+const newEditorPasswordInput = document.getElementById('newEditorPasswordInput');
+
+editToggleBtn.addEventListener('click', () => {
+  if(editMode){
+    editMode = false;
+    editToggleBtn.classList.remove('active');
+    editToggleLabel.textContent = 'แก้ไข';
+    render();
+  } else {
+    buildEditorSelect();
+    pwInput.value = '';
+    newEditorPasswordInput.value = '';
+    pwErr.style.display = 'none';
+    pwOverlay.style.display = 'flex';
+    editorNameSelect.focus();
+  }
+});
+
+function buildEditorSelect(){
+  editorNameSelect.innerHTML = '';
+  data.people.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if(p.name === currentEditor) opt.selected = true;
+    editorNameSelect.appendChild(opt);
+  });
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__';
+  newOpt.textContent = '+ เพิ่มชื่อใหม่...';
+  editorNameSelect.appendChild(newOpt);
+  newEditorNameInput.value = '';
+  updateEditorFieldVisibility();
+}
+
+function updateEditorFieldVisibility(){
+  if(editorNameSelect.value === '__new__'){
+    newEditorNameField.style.display = 'block';
+    newEditorPasswordField.style.display = 'block';
+    pwField.style.display = 'none';
+  } else {
+    newEditorNameField.style.display = 'none';
+    newEditorPasswordField.style.display = 'none';
+    pwField.style.display = 'block';
+  }
+}
+
+editorNameSelect.addEventListener('change', () => {
+  updateEditorFieldVisibility();
+  if(editorNameSelect.value === '__new__') newEditorNameInput.focus();
+});
+
+document.getElementById('pwCancel').addEventListener('click', () => pwOverlay.style.display = 'none');
+document.getElementById('pwSubmit').addEventListener('click', submitPassword);
+pwInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') submitPassword(); });
+newEditorPasswordInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') submitPassword(); });
+
+async function submitPassword(){
+  pwErr.style.display = 'none';
+  const selected = editorNameSelect.value;
+
+  if(selected === '__new__'){
+    const name = newEditorNameInput.value.trim();
+    const newPw = newEditorPasswordInput.value;
+    if(!name){
+      newEditorNameInput.focus();
+      return;
+    }
+    if(!newPw){
+      pwErr.textContent = 'กรุณาตั้งรหัสผ่านของคุณ';
+      pwErr.style.display = 'block';
+      newEditorPasswordInput.focus();
+      return;
+    }
+    const exists = data.people.some(p => p.name === name);
+    if(exists){
+      pwErr.textContent = 'มีชื่อนี้อยู่แล้ว กรุณาเลือกจากรายชื่อแทน';
+      pwErr.style.display = 'block';
+      return;
+    }
+    const newPerson = { id: uid(), name, role:'', task:'', color: PALETTE[data.people.length % PALETTE.length], password: newPw };
+    data.people.push(newPerson);
+    logActivity(`เพิ่มคนในทีม "${name}"`);
+    await saveData();
+    currentEditor = name;
+  } else {
+    const person = data.people.find(p => p.id === selected);
+    if(!person || pwInput.value !== person.password){
+      pwErr.textContent = 'รหัสผ่านไม่ถูกต้อง ลองใหม่อีกครั้ง';
+      pwErr.style.display = 'block';
+      return;
+    }
+    currentEditor = person.name;
+  }
+
+  editMode = true;
+  editToggleBtn.classList.add('active');
+  editToggleLabel.textContent = 'ออกจากโหมดแก้ไข';
+  pwOverlay.style.display = 'none';
+  render();
+}
+
+/* ---------- Category modal ---------- */
+const catOverlay = document.getElementById('catOverlay');
+const catNameInput = document.getElementById('catNameInput');
+const colorRow = document.getElementById('colorRow');
+const catModalTitle = document.getElementById('catModalTitle');
+
+function buildColorRow(){
+  colorRow.innerHTML = '';
+  PALETTE.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (c === pendingColor ? ' selected' : '');
+    sw.style.background = c;
+    sw.addEventListener('click', () => { pendingColor = c; buildColorRow(); });
+    colorRow.appendChild(sw);
+  });
+}
+
+document.getElementById('addCatBtn').addEventListener('click', () => openCatModal(null));
+document.getElementById('catCancel').addEventListener('click', () => catOverlay.style.display = 'none');
+document.getElementById('catSubmit').addEventListener('click', submitCategory);
+
+function openCatModal(catId){
+  editingCatId = catId;
+  if(catId){
+    const cat = data.categories.find(c => c.id === catId);
+    catModalTitle.textContent = 'แก้ไขหมวดหมู่';
+    catNameInput.value = cat.name;
+    pendingColor = cat.color;
+  } else {
+    catModalTitle.textContent = 'เพิ่มหมวดหมู่';
+    catNameInput.value = '';
+    pendingColor = PALETTE[data.categories.length % PALETTE.length];
+  }
+  buildColorRow();
+  catOverlay.style.display = 'flex';
+  catNameInput.focus();
+}
+
+async function submitCategory(){
+  const name = catNameInput.value.trim();
+  if(!name) return;
+  if(editingCatId){
+    const cat = data.categories.find(c => c.id === editingCatId);
+    cat.name = name;
+    cat.color = pendingColor;
+    logActivity(`แก้ไขหมวดหมู่ "${name}"`);
+    catOverlay.style.display = 'none';
+    await saveData({ touchedCategoryId: editingCatId });
+  } else {
+    const newCat = { id: uid(), name, color: pendingColor, apps: [] };
+    data.categories.push(newCat);
+    logActivity(`เพิ่มหมวดหมู่ "${name}"`);
+    catOverlay.style.display = 'none';
+    await saveData();
+  }
+  render();
+}
+
+async function deleteCategory(catId){
+  if(!confirm('ย้ายหมวดหมู่นี้ (และแอพทั้งหมดในหมวด) ไปถังขยะ?')) return;
+  const cat = data.categories.find(c => c.id === catId);
+  if(!cat) return;
+  data.categories = data.categories.filter(c => c.id !== catId);
+  data.trash.categories.unshift({ ...cat, deletedBy: currentEditor || 'ไม่ระบุชื่อ', deletedAt: Date.now() });
+  logActivity(`ลบหมวดหมู่ "${cat.name}" (ย้ายไปถังขยะ)`);
+  await saveData({ removedCategoryIds:[catId] });
+  render();
+}
+
+/* ---------- App modal ---------- */
+const appOverlay = document.getElementById('appOverlay');
+const appModalTitle = document.getElementById('appModalTitle');
+const appIconInput = document.getElementById('appIconInput');
+const appNameInput = document.getElementById('appNameInput');
+const appDescInput = document.getElementById('appDescInput');
+const appUrlInput = document.getElementById('appUrlInput');
+const appAssigneeInput = document.getElementById('appAssigneeInput');
+const appDueDateInput = document.getElementById('appDueDateInput');
+
+document.getElementById('appCancel').addEventListener('click', () => appOverlay.style.display = 'none');
+document.getElementById('appSubmit').addEventListener('click', submitApp);
+
+const statusPillRow = document.getElementById('statusPillRow');
+
+function buildStatusPills(){
+  statusPillRow.innerHTML = '';
+  STATUS_ORDER.forEach(key => {
+    const meta = STATUS_META[key];
+    const pill = document.createElement('div');
+    pill.className = 'status-pill' + (pendingStatus === key ? ' selected' : '');
+    pill.textContent = meta.label;
+    if(pendingStatus === key) pill.style.background = meta.color;
+    pill.addEventListener('click', () => { pendingStatus = key; buildStatusPills(); });
+    statusPillRow.appendChild(pill);
+  });
+}
+
+function buildAssigneeSelect(selectedId){
+  appAssigneeInput.innerHTML = '';
+  const noneOpt = document.createElement('option');
+  noneOpt.value = '';
+  noneOpt.textContent = 'ไม่ระบุ';
+  appAssigneeInput.appendChild(noneOpt);
+  data.people.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if(p.id === selectedId) opt.selected = true;
+    appAssigneeInput.appendChild(opt);
+  });
+}
+
+function openAppModal(catId, appId){
+  addingToCategoryId = catId;
+  editingAppId = appId;
+  if(appId){
+    const cat = data.categories.find(c => c.id === catId);
+    const app = cat.apps.find(a => a.id === appId);
+    appModalTitle.textContent = 'แก้ไขแอพ';
+    appIconInput.value = app.icon || '';
+    appNameInput.value = app.name || '';
+    appDescInput.value = app.desc || '';
+    appUrlInput.value = app.url || '';
+    appDueDateInput.value = app.dueDate || '';
+    pendingStatus = STATUS_META[app.status] ? app.status : 'in_progress';
+    buildAssigneeSelect(app.assignee || '');
+  } else {
+    appModalTitle.textContent = 'เพิ่มแอพ';
+    appIconInput.value = '';
+    appNameInput.value = '';
+    appDescInput.value = '';
+    appUrlInput.value = '';
+    appDueDateInput.value = '';
+    pendingStatus = 'in_progress';
+    buildAssigneeSelect('');
+  }
+  buildStatusPills();
+  appOverlay.style.display = 'flex';
+  appNameInput.focus();
+}
+
+async function submitApp(){
+  const name = appNameInput.value.trim();
+  if(!name) return;
+  const cat = data.categories.find(c => c.id === addingToCategoryId);
+  if(!cat) return;
+  const assignee = appAssigneeInput.value;
+  const dueDate = appDueDateInput.value;
+  if(editingAppId){
+    const app = cat.apps.find(a => a.id === editingAppId);
+    app.icon = appIconInput.value.trim();
+    app.name = name;
+    app.desc = appDescInput.value.trim();
+    app.url = appUrlInput.value.trim();
+    app.status = pendingStatus;
+    app.assignee = assignee;
+    app.dueDate = dueDate;
+    logActivity(`แก้ไขแอพ "${name}" ในหมวด "${cat.name}"`);
+  } else {
+    cat.apps.push({
+      id: uid(),
+      icon: appIconInput.value.trim(),
+      name,
+      desc: appDescInput.value.trim(),
+      url: appUrlInput.value.trim(),
+      status: pendingStatus,
+      assignee,
+      dueDate
+    });
+    logActivity(`เพิ่มแอพ "${name}" ในหมวด "${cat.name}"`);
+  }
+  appOverlay.style.display = 'none';
+  await saveData({ touchedCategoryId: cat.id });
+  render();
+}
+
+async function deleteApp(catId, appId){
+  if(!confirm('ย้ายแอพนี้ไปถังขยะ?')) return;
+  const cat = data.categories.find(c => c.id === catId);
+  const app = cat.apps.find(a => a.id === appId);
+  if(!app) return;
+  cat.apps = cat.apps.filter(a => a.id !== appId);
+  data.trash.apps.unshift({ ...app, _catId: catId, _catName: cat.name, deletedBy: currentEditor || 'ไม่ระบุชื่อ', deletedAt: Date.now() });
+  logActivity(`ลบแอพ "${app.name}" ในหมวด "${cat.name}" (ย้ายไปถังขยะ)`);
+  await saveData({ touchedCategoryId: catId, removedAppIds:[appId] });
+  render();
+}
+
+/* ---------- Person modal ---------- */
+const personOverlay = document.getElementById('personOverlay');
+const personModalTitle = document.getElementById('personModalTitle');
+const personNameInput = document.getElementById('personNameInput');
+const personRoleInput = document.getElementById('personRoleInput');
+const personTaskInput = document.getElementById('personTaskInput');
+const personPasswordInput = document.getElementById('personPasswordInput');
+const personColorRow = document.getElementById('personColorRow');
+
+document.getElementById('addPersonBtn').addEventListener('click', () => openPersonModal(null));
+document.getElementById('personCancel').addEventListener('click', () => personOverlay.style.display = 'none');
+document.getElementById('personSubmit').addEventListener('click', submitPerson);
+
+function buildPersonColorRow(){
+  personColorRow.innerHTML = '';
+  PALETTE.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (c === pendingPersonColor ? ' selected' : '');
+    sw.style.background = c;
+    sw.addEventListener('click', () => { pendingPersonColor = c; buildPersonColorRow(); });
+    personColorRow.appendChild(sw);
+  });
+}
+
+function openPersonModal(personId){
+  editingPersonId = personId;
+  personPasswordInput.value = '';
+  if(personId){
+    const p = data.people.find(x => x.id === personId);
+    personModalTitle.textContent = 'แก้ไขข้อมูลคนในทีม';
+    personNameInput.value = p.name || '';
+    personRoleInput.value = p.role || '';
+    personTaskInput.value = p.task || '';
+    personPasswordInput.placeholder = 'เว้นว่าง = ไม่เปลี่ยนรหัสเดิม';
+    pendingPersonColor = p.color || PALETTE[0];
+  } else {
+    personModalTitle.textContent = 'เพิ่มคนในทีม';
+    personNameInput.value = '';
+    personRoleInput.value = '';
+    personTaskInput.value = '';
+    personPasswordInput.placeholder = 'ตั้งรหัสผ่านสำหรับคนนี้';
+    pendingPersonColor = PALETTE[data.people.length % PALETTE.length];
+  }
+  buildPersonColorRow();
+  personOverlay.style.display = 'flex';
+  personNameInput.focus();
+}
+
+async function submitPerson(){
+  const name = personNameInput.value.trim();
+  if(!name) return;
+  const pwTyped = personPasswordInput.value;
+  if(editingPersonId){
+    const p = data.people.find(x => x.id === editingPersonId);
+    p.name = name;
+    p.role = personRoleInput.value.trim();
+    p.task = personTaskInput.value.trim();
+    p.color = pendingPersonColor;
+    if(pwTyped) p.password = pwTyped; // เว้นว่าง = ไม่เปลี่ยนรหัสเดิม
+    logActivity(`แก้ไขข้อมูล "${name}"`);
+  } else {
+    if(!pwTyped){
+      alert('กรุณาตั้งรหัสผ่านสำหรับคนนี้');
+      personPasswordInput.focus();
+      return;
+    }
+    data.people.push({
+      id: uid(), name,
+      role: personRoleInput.value.trim(),
+      task: personTaskInput.value.trim(),
+      color: pendingPersonColor,
+      password: pwTyped
+    });
+    logActivity(`เพิ่มคนในทีม "${name}"`);
+  }
+  personOverlay.style.display = 'none';
+  await saveData();
+  render();
+}
+
+async function deletePerson(personId){
+  if(!confirm('ย้ายรายชื่อนี้ไปถังขยะ?')) return;
+  const p = data.people.find(x => x.id === personId);
+  if(!p) return;
+  data.people = data.people.filter(x => x.id !== personId);
+  data.trash.people.unshift({ ...p, deletedBy: currentEditor || 'ไม่ระบุชื่อ', deletedAt: Date.now() });
+  logActivity(`ลบคนในทีม "${p.name}" (ย้ายไปถังขยะ)`);
+  await saveData({ removedPersonIds:[personId] });
+  render();
+}
+
+/* ---------- Trash ---------- */
+const trashOverlay = document.getElementById('trashOverlay');
+const trashToggleBtn = document.getElementById('trashToggleBtn');
+const trashBadge = document.getElementById('trashBadge');
+const trashList = document.getElementById('trashList');
+
+function trashCount(){
+  return data.trash.apps.length + data.trash.categories.length + data.trash.people.length;
+}
+function updateTrashBadge(){
+  const n = trashCount();
+  if(n > 0){
+    trashBadge.style.display = 'flex';
+    trashBadge.textContent = n > 99 ? '99+' : n;
+  } else {
+    trashBadge.style.display = 'none';
+  }
+}
+
+trashToggleBtn.addEventListener('click', () => {
+  currentTrashTab = 'apps';
+  document.querySelectorAll('.trash-tab').forEach(t => t.classList.toggle('active', t.dataset.trashKind === 'apps'));
+  renderTrashList();
+  trashOverlay.style.display = 'flex';
+});
+document.getElementById('trashCloseBtn').addEventListener('click', () => trashOverlay.style.display = 'none');
+document.querySelectorAll('.trash-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    currentTrashTab = tab.dataset.trashKind;
+    document.querySelectorAll('.trash-tab').forEach(t => t.classList.toggle('active', t === tab));
+    renderTrashList();
+  });
+});
+
+function renderTrashList(){
+  const items = data.trash[currentTrashTab] || [];
+  if(items.length === 0){
+    trashList.innerHTML = `<div class="trash-empty">ไม่มีรายการในถังขยะ</div>`;
+    return;
+  }
+  trashList.innerHTML = items.map(item => {
+    let sub = `ลบโดย ${escapeHtml(item.deletedBy || 'ไม่ระบุชื่อ')} · ${relativeTime(item.deletedAt)}`;
+    if(currentTrashTab === 'apps') sub += ` · จากหมวด "${escapeHtml(item._catName || '-')}"`;
+    if(currentTrashTab === 'categories') sub += ` · ${item.apps ? item.apps.length : 0} แอพ`;
+    return `
+      <div class="trash-row">
+        <div class="trash-row-info">
+          <div class="trash-row-name">${escapeHtml(item.name)}</div>
+          <div class="trash-row-sub">${sub}</div>
+        </div>
+        <div class="trash-row-actions">
+          <button class="small-btn restore" data-trash-action="restore" data-id="${item.id}">กู้คืน</button>
+          <button class="small-btn forget" data-trash-action="forget" data-id="${item.id}">ลบถาวร</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  trashList.querySelectorAll('[data-trash-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(btn.dataset.trashAction === 'restore') restoreFromTrash(currentTrashTab, btn.dataset.id);
+      if(btn.dataset.trashAction === 'forget') forgetFromTrash(currentTrashTab, btn.dataset.id);
+    });
+  });
+}
+
+async function restoreFromTrash(kind, id){
+  const item = data.trash[kind].find(x => x.id === id);
+  if(!item) return;
+  if(kind === 'apps'){
+    let targetCat = data.categories.find(c => c.id === item._catId);
+    if(!targetCat && data.categories.length > 0) targetCat = data.categories[0];
+    if(!targetCat){
+      alert('ไม่มีหมวดหมู่ให้กู้คืนแอพนี้ กรุณาสร้างหมวดหมู่ก่อน');
+      return;
+    }
+    const { _catId, _catName, deletedBy, deletedAt, ...app } = item;
+    targetCat.apps.push(app);
+    data.trash.apps = data.trash.apps.filter(x => x.id !== id);
+    logActivity(`กู้คืนแอพ "${app.name}" กลับไปหมวด "${targetCat.name}"`);
+    await saveData({ touchedCategoryId: targetCat.id, forgottenAppIds:[id] });
+  } else if(kind === 'categories'){
+    const { deletedBy, deletedAt, ...cat } = item;
+    data.categories.push(cat);
+    data.trash.categories = data.trash.categories.filter(x => x.id !== id);
+    logActivity(`กู้คืนหมวดหมู่ "${cat.name}"`);
+    await saveData({ forgottenCategoryIds:[id] });
+  } else if(kind === 'people'){
+    const { deletedBy, deletedAt, ...person } = item;
+    data.people.push(person);
+    data.trash.people = data.trash.people.filter(x => x.id !== id);
+    logActivity(`กู้คืนคนในทีม "${person.name}"`);
+    await saveData({ forgottenPersonIds:[id] });
+  }
+  renderTrashList();
+  render();
+}
+
+async function forgetFromTrash(kind, id){
+  if(!confirm('ลบรายการนี้ถาวร? กู้คืนไม่ได้อีก')) return;
+  const item = data.trash[kind].find(x => x.id === id);
+  data.trash[kind] = data.trash[kind].filter(x => x.id !== id);
+  const opts = {};
+  if(kind === 'apps') opts.forgottenAppIds = [id];
+  if(kind === 'categories') opts.forgottenCategoryIds = [id];
+  if(kind === 'people') opts.forgottenPersonIds = [id];
+  if(item) logActivity(`ลบถาวร "${item.name}" ออกจากถังขยะ`);
+  await saveData(opts);
+  renderTrashList();
+  render();
+}
+
+/* ---------- App preview modal ---------- */
+const previewOverlay = document.getElementById('previewOverlay');
+const previewIframe = document.getElementById('previewIframe');
+const previewIcon = document.getElementById('previewIcon');
+const previewTitle = document.getElementById('previewTitle');
+const previewOpenNewTab = document.getElementById('previewOpenNewTab');
+const previewFallback = document.getElementById('previewFallback');
+let previewLoadTimer = null;
+
+function openAppPreview(url, name, icon){
+  previewIcon.textContent = icon || '🔗';
+  previewTitle.textContent = name || 'ตัวอย่างหน้าแอพ';
+  previewOpenNewTab.href = url;
+  previewFallback.classList.remove('show');
+  previewIframe.style.display = 'block';
+  previewIframe.src = url;
+  previewOverlay.style.display = 'flex';
+
+  clearTimeout(previewLoadTimer);
+  // หลายเว็บบล็อกการแสดงในหน้าอื่น (X-Frame-Options/CSP) โดยเบราว์เซอร์ไม่ยิง error event ให้เสมอ
+  // ใช้ timeout เดาแทน: ถ้าโหลดนานผิดปกติ ให้เสนอปุ่ม "เปิดแท็บใหม่" เด่นขึ้น
+  previewLoadTimer = setTimeout(() => {
+    try{
+      // ถ้าเข้าถึง contentWindow ไม่ได้เลยและยังว่างอยู่ ให้ถือว่าโดนบล็อก
+      const doc = previewIframe.contentDocument;
+      if(!doc || (doc.body && doc.body.innerHTML.trim() === '' && previewIframe.src !== 'about:blank')){
+        previewFallback.classList.add('show');
+      }
+    }catch(e){
+      // cross-origin แปลว่าโหลดได้จริง (แค่เข้าถึงเนื้อหาไม่ได้) — ไม่ต้องโชว์ fallback
+    }
+  }, 4000);
+}
+
+function closeAppPreview(){
+  clearTimeout(previewLoadTimer);
+  previewOverlay.style.display = 'none';
+  previewIframe.src = 'about:blank';
+}
+
+document.getElementById('previewCloseBtn').addEventListener('click', closeAppPreview);
+previewOverlay.addEventListener('click', (e) => { if(e.target === previewOverlay) closeAppPreview(); });
+
+/* ---------- Person detail (org-chart style) ---------- */
+const personDetailOverlay = document.getElementById('personDetailOverlay');
+const personDetailChart = document.getElementById('personDetailChart');
+
+function openPersonDetail(personId){
+  const p = data.people.find(x => x.id === personId);
+  if(!p) return;
+
+  // รวบรวมแอพทั้งหมดที่มอบหมายให้คนนี้ แยกตามหมวดหมู่
+  const branches = [];
+  data.categories.forEach(cat => {
+    const apps = cat.apps.filter(a => a.assignee === personId);
+    if(apps.length > 0) branches.push({ cat, apps });
+  });
+
+  const topNode = `
+    <div class="org-top">
+      <div class="org-node" style="background:${p.color || '#10202e'};">
+        <div class="org-avatar" style="background:rgba(255,255,255,.22);">${escapeHtml(initials(p.name))}</div>
+        <div>
+          <div class="org-node-name">${escapeHtml(p.name)}</div>
+          ${p.role ? `<div class="org-node-role">${escapeHtml(p.role)}</div>` : ''}
+        </div>
+      </div>
+    </div>
+    ${p.task ? `<div class="org-task-line">กำลังทำ: ${escapeHtml(p.task)}</div>` : ''}
+  `;
+
+  if(branches.length === 0){
+    personDetailChart.innerHTML = topNode + `
+      <div class="org-trunk"></div>
+      <div class="org-empty">ยังไม่มีแอพที่มอบหมายให้คนนี้รับผิดชอบ</div>
+    `;
+    personDetailOverlay.style.display = 'flex';
+    return;
+  }
+
+  const branchCols = branches.map(({ cat, apps }) => `
+    <div class="org-branch-col">
+      <div class="org-branch-stub"></div>
+      <div class="org-branch-card">
+        <div class="org-branch-head" style="background:${cat.color};">
+          <span>${escapeHtml(cat.name)}</span>
+          <span>${apps.length}</span>
+        </div>
+        <div class="org-branch-body">
+          ${apps.map(a => {
+            const sMeta = STATUS_META[a.status] || STATUS_META.in_progress;
+            return `
+              <div class="org-app-row">
+                <span class="oa-icon">${a.icon || '🔗'}</span>
+                <span class="oa-name">${escapeHtml(a.name)}</span>
+                <span class="oa-status" style="background:${hexToRgba(sMeta.color,0.16)};color:${sMeta.color};">${sMeta.label}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  personDetailChart.innerHTML = topNode + `
+    <div class="org-trunk"></div>
+    <div class="org-branch-row">${branchCols}</div>
+  `;
+  personDetailOverlay.style.display = 'flex';
+}
+
+document.getElementById('personDetailCloseBtn').addEventListener('click', () => personDetailOverlay.style.display = 'none');
+personDetailOverlay.addEventListener('click', (e) => { if(e.target === personDetailOverlay) personDetailOverlay.style.display = 'none'; });
+
+/* ---------- Activity ---------- */
+function renderActivityList(){
+  const list = document.getElementById('activityList');
+  const items = (data.activity || []).slice(0, 8);
+  if(items.length === 0){
+    list.innerHTML = `<div class="empty-people">ยังไม่มีประวัติ</div>`;
+    return;
+  }
+  list.innerHTML = items.map(item => `
+    <div class="activity-item">
+      <div class="activity-dot"></div>
+      <div class="activity-info">
+        <div class="activity-text"><strong>${escapeHtml(item.name)}</strong> ${escapeHtml(item.action)}</div>
+        <div class="activity-time">${relativeTime(item.time)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLastUpdatedLine(){
+  const line = document.getElementById('lastUpdatedLine');
+  const items = (data.activity || []);
+  if(items.length === 0){
+    line.style.display = 'none';
+    return;
+  }
+  const latest = items[0];
+  line.style.display = 'block';
+  line.innerHTML = `อัปเดตล่าสุดโดย <strong style="color:var(--ink);">${escapeHtml(latest.name)}</strong> — ${escapeHtml(latest.action)} · ${relativeTime(latest.time)}`;
+}
+
+/* ---------- Search ---------- */
+document.getElementById('searchInput').addEventListener('input', render);
+
+/* ---------- Init ---------- */
+loadData();
+</script>
+</body>
+</html>
